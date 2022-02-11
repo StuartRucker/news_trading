@@ -96,7 +96,8 @@ def scrape_day(date):
                 }
                 article_obj.update(scrape_article(article_obj["link"]))
                 articles.append(article_obj)
-            except:
+            except Exception as e:
+                print(e)
                 print(f"Failed to scrape article from {url} page {i}")
 
     
