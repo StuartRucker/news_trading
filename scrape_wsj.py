@@ -13,7 +13,7 @@ import os
 import pyuser_agent
 
 PROXY_USERNAME = 'sp81437467'
-PROXY_PASSWORD = 
+PROXY_PASSWORD = input("Proxy Password: ")
 proxy = f"http://{PROXY_USERNAME}:{PROXY_PASSWORD}@gate.smartproxy.com:7000"
 
 
