@@ -65,6 +65,13 @@ def scrape_article(url):
     return return_obj
 
 def scrape_day(date):
+    #convert date to string
+    date_str = date.strftime('%Y-%m-%d')
+    file_name = f"data/wsj/{date_str}.json"
+    #if the file exists, skip
+    if os.path.isfile(file_name):
+        return
+
     url = f"https://www.wsj.com/news/archive/{date.year}/{date.month}/{date.day}"
 
     articles = []
@@ -93,10 +100,8 @@ def scrape_day(date):
                 print(f"Failed to scrape article from {url} page {i}")
 
     
-    #convert date to string
-    date_str = date.strftime('%Y-%m-%d')
     #save to data/wsj/{date}.json
-    with open(f"data/wsj/{date_str}.json", "w") as f:
+    with open(file_name, "w") as f:
         json.dump(articles, f)
 
 
