@@ -5,7 +5,6 @@ Scrapes WSJ archives page
 import requests
 from bs4 import BeautifulSoup
 from datetime import date, timedelta, datetime
-import dateutil
 import random
 import re
 from multiprocessing import Pool
