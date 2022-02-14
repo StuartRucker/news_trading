@@ -11,7 +11,7 @@ tz = timezone('EST')
 API_SECRET = '0qbJ1w4qI2nq3HKpDk7uVpjqLq6qgOLTdANH84kE'
 API_KEY = 'AKONDXTFSFXNTOZ15B7D'
 
-filename = 'data/singleshot-2022-02-11.json'
+filename = 'data/singleshot-2022-02-09.json'
 with open(filename) as f:
     data = json.load(f)
 
@@ -104,14 +104,24 @@ def convert_date(date_obj):
 
 
 def apply_prices_alpaca(info, date):
-    date_obj = datetime.datetime.strptime(date, '%Y-%m-%d %H:%M') + datetime.timedelta(minutes=1)
+    date_obj = datetime.datetime.strptime(date, '%Y-%m-%d %H:%M') # + datetime.timedelta(minutes=1)
     tomorrow = date_obj + datetime.timedelta(minutes=30)
+
+    if date_obj.hour >= 16: #after 4 pm et
+        date_obj = date_obj.replace(day=date_obj.day+1, hour=9, minute=30, second=0, microsecond=0)
+        tomorrow = date_obj + datetime.timedelta(minutes=30)
+        print("Trade next day")
+    if date_obj.hour <= 9 and date_obj.minute <= 30: #before 9:30 et
+        date_obj = date_obj.replace(day=date_obj.day, hour=9, minute=30, second=0, microsecond=0)
+        tomorrow = date_obj + datetime.timedelta(minutes=30)
+        print("Trade as soon as nyse opens")
+
     for ticker in info.keys():
         # make a request to the alpaca api for the price of the ticker on the date at GET/v2/stocks/{symbol}/trades
         # authenticate with API_KEY and API_SECRET
         print(ticker)
         url = f'https://data.alpaca.markets/v2/stocks/{ticker}/trades'
-        params = {'start': convert_date(date_obj), 'end': convert_date(tomorrow), 'limit': 2}
+        params = {'start': convert_date(date_obj), 'end': convert_date(tomorrow), 'limit': 10}
         print(params)
         headers = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': API_SECRET}
 
@@ -119,6 +129,9 @@ def apply_prices_alpaca(info, date):
         response_json = response.json()
         if response_json and response_json['trades'] and len(response_json['trades']) > 0:
             info[ticker]['prices'] = (response_json['trades'][0]['p'], response.json()['trades'][-1]['p'])
+            if response_json['trades'][0]['p'] == response.json()['trades'][-1]['p']:
+                print(date_obj)
+                print(tomorrow)
 
 
 def process_article(article):
@@ -139,7 +152,6 @@ def process_article(article):
     # print(info)
 
     return info
-
 
 random.shuffle(data)
 output_info = []
