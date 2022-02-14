@@ -2,8 +2,8 @@ import os
 import openai
 import json
 
-openai.organization = 'org-GYC5MSBCxK8Jjy6O1PJ7ivGU'
-openai.api_key = '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'
+openai.organization = input("orgo")
+openai.api_key = input("api")
 openai.Engine.list()
 
 # Opening JSON file
