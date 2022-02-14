@@ -105,7 +105,7 @@ def convert_date(date_obj):
 
 def apply_prices_alpaca(info, date):
     date_obj = datetime.datetime.strptime(date, '%Y-%m-%d %H:%M') + datetime.timedelta(minutes=1)
-    tomorrow = date_obj + datetime.timedelta(hours=2)
+    tomorrow = date_obj + datetime.timedelta(minutes=30)
     for ticker in info.keys():
         # make a request to the alpaca api for the price of the ticker on the date at GET/v2/stocks/{symbol}/trades
         # authenticate with API_KEY and API_SECRET
