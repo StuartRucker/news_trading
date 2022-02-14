@@ -25,7 +25,7 @@ for prediction_obj in data:
                 # then buy same amount of stock at second time point
                 earnings += (d['prices'][0]-d['prices'][1]) * 1000/d['prices'][0]
             if d['move'] == "up":
-                earnings += (d['prices'][1] - d['prices'][0]) * 1000 / d['prices'][1]
+                earnings += (d['prices'][1] - d['prices'][0]) * 1000 / d['prices'][0]
 
             counts[price_move_str] = counts.get(price_move_str, 0) + 1
 
