@@ -11,7 +11,7 @@ tz = timezone('EST')
 API_SECRET = '0qbJ1w4qI2nq3HKpDk7uVpjqLq6qgOLTdANH84kE'
 API_KEY = 'AKONDXTFSFXNTOZ15B7D'
 
-filename = 'data/singleshot-2022-02-09.json'
+filename = 'data/wsj_predictions/all.json'
 with open(filename) as f:
     data = json.load(f)
 
@@ -55,6 +55,8 @@ def get_tickers(s):
 
     # use regex to find stock tickers with patterns such as (NYSE: VEPCO)
     tickers += re.findall(r'\(NYSE:\s*([A-Z]{1,5})\)', s)
+
+    tickers += re.findall(r'\(NASDAQ:\s*([A-Z]{1,5})\)', s)
 
     return tickers
 
@@ -160,8 +162,9 @@ def process_article(article):
     # for k in ['title', 'summary', 'Stocks Affected', 'Prediction']:
     #     print(k, article[k])
     # print(info)
+    article['price_info'] = info
 
-    return info
+    return article
 
 random.shuffle(data)
 output_info = []
@@ -169,5 +172,5 @@ for article in data:
     output_info.append(process_article(article))
 
 # save output_info to a json file
-with open('tmp.json', 'w') as f:
+with open('data/wsj_predictions/all_with_price.json', 'w') as f:
     json.dump(output_info, f)
