@@ -86,8 +86,8 @@ def call_openai(blurb):
     return response
 
 def init_openai():
-    openai.organization = 
-    openai.api_key = 
+    openai.organization = 'org-GYC5MSBCxK8Jjy6O1PJ7ivGU'
+    openai.api_key = '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'
     openai.Engine.list()
 
 
@@ -127,7 +127,7 @@ def main():
                 result_objs.append(article)
     print(cnt)
     #save result_objs to a file
-    with open("data/wsj_predictions/all.json", "w") as f:
+    with open("data/wsj_predictions/flight_prompt.json", "w") as f:
         json.dump(result_objs, f)
     
 
