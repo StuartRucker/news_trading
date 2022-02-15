@@ -34,7 +34,7 @@ for prediction_obj in data:
             trades.append( (earnings, d['ticker'], prediction_obj['title'] ))
             balance_history.append(total_earnings)
 print(counts)
-print(earnings)
+print(balance_history[-1])
 for val, ticker, title in sorted(trades, key=lambda x: x[0], reverse=True):
     print(f"{ticker} earned {val} on {title[:50]}")
 # print(trades)
