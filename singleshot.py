@@ -9,6 +9,8 @@ import pandas_market_calendars as mcal
 from datetime import datetime, timedelta
 import pandas as pd
 
+random.seed(69)
+
 def generate_blurb_addidas(article):
     blurb = "List out all the names and stock tickers of the companies most associated with the news, and how the price will move as a result of the news:\n\n"
     blurb += "TITLE: Adidas Frees the Nipple With New Sports-Bra Campaign for Women\n"
@@ -84,8 +86,8 @@ def call_openai(blurb):
     return response
 
 def init_openai():
-    openai.organization = 
-    openai.api_key = 
+    openai.organization = 'org-GYC5MSBCxK8Jjy6O1PJ7ivGU'
+    openai.api_key = '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'
     openai.Engine.list()
 
 
@@ -117,7 +119,6 @@ def main():
                     continue
                 blurb = generate_blurb_flight(article)
 
-                
                 
                 article['blurb'] = blurb
                 response = call_openai(blurb)
