@@ -86,7 +86,7 @@ def call_openai(blurb):
     return response
 
 def init_openai():
-    openai.organization = 'org-GYC5MSBCxK8Jjy6O1PJ7ivGU'
+    openai.organization =
     openai.api_key = 
     openai.Engine.list()
 
