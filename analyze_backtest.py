@@ -16,6 +16,7 @@ counts = {}
 total_earnings = 0
 
 trades = []
+balance_history = []
 for prediction_obj in data:
     for d in prediction_obj['price_info'].values():
         if 'move' in d and 'prices' in d and d['move'] and d['prices'] and len(d['prices']) > 1:
@@ -31,8 +32,21 @@ for prediction_obj in data:
             total_earnings += earnings
             counts[price_move_str] = counts.get(price_move_str, 0) + 1
             trades.append( (earnings, d['ticker'], prediction_obj['title'] ))
+            balance_history.append(total_earnings)
 print(counts)
 print(earnings)
 for val, ticker, title in sorted(trades, key=lambda x: x[0], reverse=True):
     print(f"{ticker} earned {val} on {title[:50]}")
 # print(trades)
+
+
+# plot all of the earnings in trades
+import matplotlib.pyplot as plt
+import numpy as np
+
+#Plot the balance history vs the index
+plt.plot(np.arange(len(balance_history)), balance_history)
+plt.xlabel('Time')
+plt.ylabel('Balance')
+plt.title('Balance History')
+plt.show()
