@@ -25,9 +25,9 @@ def generate_blurb_addidas(article):
     return blurb
 
 
-def generate_blurb_flight(article):
+def generate_blurb(article, base):
     #read from data/prompts/flight_prompt.txt
-    with open("data/prompts/flight_prompt.txt") as f:
+    with open(base) as f:
         prompt = f.read()
         prompt = prompt.replace("{TITLE}", article['title'])
         prompt = prompt.replace("{SUMMARY}", article['summary'])
@@ -86,8 +86,8 @@ def call_openai(blurb):
     return response
 
 def init_openai():
-    openai.organization = 'org-GYC5MSBCxK8Jjy6O1PJ7ivGU'
-    openai.api_key = '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'
+    openai.organization = 
+    openai.api_key = 
     openai.Engine.list()
 
 
@@ -117,7 +117,7 @@ def main():
             for article in articles:
                 if random.random() > 1.0/112.0:
                     continue
-                blurb = generate_blurb_flight(article)
+                blurb = generate_blurb(article, "data/prompts/flight_prompt.txt")
 
                 
                 article['blurb'] = blurb
