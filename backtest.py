@@ -6,12 +6,13 @@ import requests
 import datetime
 from pytz import timezone
 
-tz = timezone('EST')
-
 API_SECRET = '0qbJ1w4qI2nq3HKpDk7uVpjqLq6qgOLTdANH84kE'
 API_KEY = 'AKONDXTFSFXNTOZ15B7D'
+EXTRA_HOLD_IF_UP = 30  # we hold stock for 30 less minutes if we want to buy a stock (i.e. we think it's going up)
 
-filename = 'data/wsj_predictions/all.json'
+tz = timezone('EST')
+
+filename = 'data/wsj_predictions/vaccine_prompt.json'
 with open(filename) as f:
     data = json.load(f)
 
@@ -72,8 +73,8 @@ def apply_move(info, mode, move):
 
 # adds the stock move to the info dictionary based on the prediction
 def apply_stock_move(info, s):
-    up_words = set(['up', 'increase', 'increases', 'raise', 'raises', 'rise', 'rises', 'grow', 'grows'])
-    down_words = set(['down', 'decrease', 'decreases', 'fall', 'falls', 'decline', 'declines', 'shrink', 'shrinks'])
+    up_words = set(['up', 'increase', 'increases', 'raise', 'raises', 'rise', 'rises', 'grow', 'grows', 'positive', 'positively', 'benefit'])
+    down_words = set(['down', 'decrease', 'decreases', 'fall', 'falls', 'decline', 'declines', 'shrink', 'shrinks', 'negatively'])
     words = s.split()
 
     mode = 'all'
@@ -105,17 +106,18 @@ def convert_date(date_obj):
     return date_str
 
 
-def apply_prices_alpaca(info, date):
+def apply_prices_alpaca(info, date, hold_time):
+
     date_obj = datetime.datetime.strptime(date, '%Y-%m-%d %H:%M')  # + datetime.timedelta(minutes=1)
-    tomorrow = date_obj + datetime.timedelta(minutes=30)
+    tomorrow = date_obj + datetime.timedelta(minutes=hold_time)
 
     if date_obj.hour >= 16: #after 4 pm et
         date_obj = date_obj.replace(day=date_obj.day+1, hour=9, minute=30, second=0, microsecond=0)
-        tomorrow = date_obj + datetime.timedelta(minutes=30)
+        tomorrow = date_obj + datetime.timedelta(minutes=hold_time)
         # print("Trade next day")
     if date_obj.hour <= 9 and date_obj.minute <= 30:  # before 9:30 et
         date_obj = date_obj.replace(day=date_obj.day, hour=9, minute=30, second=0, microsecond=0)
-        tomorrow = date_obj + datetime.timedelta(minutes=30)
+        tomorrow = date_obj + datetime.timedelta(minutes=hold_time)
         # print("Trade as soon as nyse opens")
 
     if tomorrow.hour >= 16: # do not sell after 4 pm et
@@ -124,6 +126,7 @@ def apply_prices_alpaca(info, date):
     for ticker in info.keys():
         # make a request to the alpaca api for the price of the ticker on the date at GET/v2/stocks/{symbol}/trades
         # authenticate with API_KEY and API_SECRET
+
         print(ticker)
         url = f'https://data.alpaca.markets/v2/stocks/{ticker}/trades'
 
@@ -137,6 +140,10 @@ def apply_prices_alpaca(info, date):
 
         # SECOND ACTION (FINISH SHORT, OR FINISH BUY)
         params2 = {'start': convert_date(tomorrow), 'end': convert_date(tomorrow + datetime.timedelta(minutes=30)), 'limit': 10}
+        if info[ticker]['move'] == 'up':
+            params2 = {'start': convert_date(tomorrow + datetime.timedelta(minutes=EXTRA_HOLD_IF_UP)),
+                       'end': convert_date(tomorrow + datetime.timedelta(minutes=EXTRA_HOLD_IF_UP) + datetime.timedelta(minutes=30)),
+                       'limit': 10}
         print(params2)
         response2 = requests.get(url, params=params2, headers=headers)
         response2_json = response2.json()
@@ -146,7 +153,7 @@ def apply_prices_alpaca(info, date):
 
 
 
-def process_article(article):
+def process_article(article, hold_time):
     tickers = get_tickers(article['Prediction'])
 
     companies = get_company_names(tickers, article['Prediction'])
@@ -155,7 +162,7 @@ def process_article(article):
 
     apply_stock_move(info, article['Prediction'])
 
-    apply_prices_alpaca(info, article['date'])
+    apply_prices_alpaca(info, article['date'], hold_time)
 
     # print the article title, summary, and then the ticker and move for each company
     # print("\n\n*********************")
@@ -166,11 +173,12 @@ def process_article(article):
 
     return article
 
-random.shuffle(data)
-output_info = []
-for article in data:
-    output_info.append(process_article(article))
+if __name__ == '__main__':
+    random.shuffle(data)
+    output_info = []
+    for article in data:
+        output_info.append(process_article(article, 60))
 
-# save output_info to a json file
-with open('data/wsj_predictions/all_with_price.json', 'w') as f:
-    json.dump(output_info, f)
+    # save output_info to a json file
+    with open('data/wsj_predictions/vaccine_prompt_with_price.json', 'w') as f:
+        json.dump(output_info, f)
