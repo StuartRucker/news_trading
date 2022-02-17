@@ -12,7 +12,7 @@ EXTRA_HOLD_IF_UP = 30  # we hold stock for 30 less minutes if we want to buy a s
 
 tz = timezone('EST')
 
-filename = 'data/wsj_predictions/vaccine_prompt.json'
+filename = 'data/wsj_predictions/large_vaccine_prompt_with_price.json'
 with open(filename) as f:
     data = json.load(f)
 
@@ -109,6 +109,7 @@ def convert_date(date_obj):
 def apply_prices_alpaca(info, date, hold_time):
 
     date_obj = datetime.datetime.strptime(date, '%Y-%m-%d %H:%M')  # + datetime.timedelta(minutes=1)
+    date_obj = date_obj + datetime.timedelta(minutes=1.5)
     tomorrow = date_obj + datetime.timedelta(minutes=hold_time)
 
     if date_obj.hour >= 16: #after 4 pm et
@@ -148,7 +149,7 @@ def apply_prices_alpaca(info, date, hold_time):
         response2 = requests.get(url, params=params2, headers=headers)
         response2_json = response2.json()
 
-        if response2_json and response2_json['trades'] and len(response2_json['trades']) > 0 and response_json and response_json['trades'] and len(response_json['trades']) > 0:
+        if response2_json and 'trades' in response2_json and response2_json['trades'] and len(response2_json['trades']) > 0 and response_json and 'trades' in response_json and response_json['trades'] and len(response_json['trades']) > 0:
             info[ticker]['prices'] = (response_json['trades'][0]['p'], response2.json()['trades'][0]['p'])
 
 
@@ -175,6 +176,8 @@ def process_article(article, hold_time):
 
 if __name__ == '__main__':
     random.shuffle(data)
+    print(len(data))
+    
     output_info = []
     for article in data:
         output_info.append(process_article(article, 60))
