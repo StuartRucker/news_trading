@@ -1,6 +1,7 @@
 #open tmp.json
 import json
-with open('data/wsj_predictions/all_with_price.json', 'r') as f:
+
+with open('data/wsj_predictions/vaccine_prompt_with_price.json', 'r') as f:
     data = json.load(f)
 
 def sign(x):
@@ -12,12 +13,25 @@ def sign(x):
         return 'down'
 counts = {}
 
-# assume we put in $100 worth for each stock and zero transaction fee
+# assume we put in 50 stocks or up to $2000 worth for each stock and zero transaction fee
 total_earnings = 0
+
+categories = {'Business', 'Economy', 'Heard on the Street', 'Markets', 'Tech', 'Stocks', 'WSJ News Exclusive', 'CFO Journal', 'Pro Bankruptcy', 'CIO Journal'}
+dictionary = dict()
+earnings_dict = dict()
+for c in categories:
+    dictionary[c] = [0,0,0,0]
+for c in categories:
+    earnings_dict[c] = 0
 
 trades = []
 balance_history = []
+
 for prediction_obj in data:
+    # for category in prediction_obj['categories'][0]:
+    #     if category not in categories:
+    #         categories.add(category)
+
     for d in prediction_obj['price_info'].values():
         if 'move' in d and 'prices' in d and d['move'] and d['prices'] and len(d['prices']) > 1:
             price_move_str = d['move'] + '_' + sign(d['prices'][1] - d['prices'][0])
@@ -26,18 +40,46 @@ for prediction_obj in data:
             if d['move'] == "down":
                 # we chose to sell $1000 worth of stock at first time point,
                 # then buy same amount of stock at second time point
-                earnings += (d['prices'][0]-d['prices'][1]) * 1000/d['prices'][0]
+                earnings += (d['prices'][0]-d['prices'][1]) * 20000 / d['prices'][0]
+
+                for category in prediction_obj['categories'][0]:
+                    if category in categories:
+                        earnings_dict[category] += (d['prices'][0] - d['prices'][1]) * 20000 / d['prices'][0]
+                        if (d['prices'][0]-d['prices'][1]) > 0:
+                            dictionary[category][1] += 1
+                        else:
+                            dictionary[category][3] += 1
             if d['move'] == "up":
-                earnings += (d['prices'][1] - d['prices'][0]) * 1000 / d['prices'][0]
+                earnings += (d['prices'][1] - d['prices'][0]) * 20000 / d['prices'][0]
+
+                for category in prediction_obj['categories'][0]:
+                    if category in categories:
+                        earnings_dict[category] += (d['prices'][1] - d['prices'][0]) * 20000 / d['prices'][0]
+                        if (d['prices'][1] - d['prices'][0]) > 0:
+                            dictionary[category][0] += 1
+                        else:
+                            dictionary[category][2] += 1
+
             total_earnings += earnings
             counts[price_move_str] = counts.get(price_move_str, 0) + 1
             trades.append( (earnings, d['ticker'], prediction_obj['title'] ))
             balance_history.append(total_earnings)
+
 print(counts)
 print(balance_history[-1])
 for val, ticker, title in sorted(trades, key=lambda x: x[0], reverse=True):
     print(f"{ticker} earned {val} on {title[:50]}")
 # print(trades)
+
+for d in dictionary:
+    stock = dictionary[d]
+    print(d)
+    print(stock)
+    try:
+        print("Accuracy:", (stock[0]+stock[1])/(stock[0]+stock[1]+stock[2]+stock[3]))
+    except:
+        continue
+    print("Earned:", earnings_dict[d])
 
 
 # plot all of the earnings in trades
